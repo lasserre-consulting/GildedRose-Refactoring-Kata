@@ -18,6 +18,7 @@ class GildedRoseTest {
     private static final String AGED_BRIE = "Aged Brie";
     private static final String SULFURAS = "Sulfuras, Hand of Ragnaros";
     private static final String BACKSTAGE = "Backstage passes to a TAFKAL80ETC concert";
+    private static final String CONJURED = "Conjured Mana Cake";
 
     /** Advances the inventory by a single day and returns the (only) updated item. */
     private static Item updateSingle(Item item) {
@@ -169,6 +170,45 @@ class GildedRoseTest {
             Item item = updateSingle(new Item(BACKSTAGE, 5, 49));
 
             assertEquals(50, item.quality);
+        }
+    }
+
+    @Nested
+    @DisplayName("Conjured items")
+    class Conjured {
+
+        @Test
+        @DisplayName("degrade twice as fast as standard items before the sell date")
+        void degradeTwiceAsFastBeforeSellDate() {
+            Item item = updateSingle(new Item(CONJURED, 3, 6));
+
+            assertEquals(2, item.sellIn);
+            assertEquals(4, item.quality);
+        }
+
+        @Test
+        @DisplayName("degrade twice as fast again once the sell date has passed")
+        void degradeFourTimesAsFastAfterSellDate() {
+            Item item = updateSingle(new Item(CONJURED, 0, 10));
+
+            assertEquals(-1, item.sellIn);
+            assertEquals(6, item.quality);
+        }
+
+        @Test
+        @DisplayName("never have a negative quality")
+        void qualityIsNeverNegative() {
+            Item item = updateSingle(new Item(CONJURED, 5, 1));
+
+            assertEquals(0, item.quality);
+        }
+
+        @Test
+        @DisplayName("never drop below zero even past the sell date")
+        void qualityStaysAtZeroPastSellDate() {
+            Item item = updateSingle(new Item(CONJURED, 0, 3));
+
+            assertEquals(0, item.quality);
         }
     }
 }
